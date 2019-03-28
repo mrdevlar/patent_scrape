@@ -1,5 +1,4 @@
 import pandas as pd
-import scrapy
 import requests
 import json
 import argparse
@@ -18,13 +17,17 @@ def parse_args():
     parser.add_argument('-s', '--search', type=str, nargs='+', required=True,
         help='REQUIRED: The search terms to search Google Patents')
 
-    parser.add_argument('-o', '--output', type=str, required=True,
+    parser.add_argument('-o', '--output', type=str, 
         default='output.csv',
         help='REQUIRED: Output CSV file')
 
     parser.add_argument('-n', '--number', type=int, 
         default=100,
         help='Number of returned results')
+    
+    parser.add_argument('-p', '--pause', type=float, 
+        default=0.1,
+        help='Second wait between scrape')
    
     args = parser.parse_args()
     return args
@@ -120,6 +123,14 @@ def output_csv(file_name, patent_list):
 def main():
     args = parse_args()
     if args.verbose: print("Input Arguments\n", args, '\n')
+    search_string = ' '.join(args.search)
+    json_url = generate_json_url(search_string)
+    if args.verbose: print(json_url)
+    patent_list = get_patent_json(json_url)
+    patent_scrape = scrape_patents(patent_list, sleep_time=args.pause, verbose=args.verbose)
+    output_csv(args.output, patent_scrape)
+
+    
 
 
 if __name__ == '__main__':
